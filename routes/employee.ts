@@ -78,4 +78,27 @@ router.post("/deleteEmployee", async (req, res) => {
   }
 });
 
+router.post("/updateEmployee", async (req, res) => {
+  let { id, name, departmentId, hiredate, levelId } = req.body;
+  let sql = `UPDATE employee
+        SET
+            name='${name}',
+            departmentId=${departmentId},
+            hiredate='${hiredate}',
+            levelId=${levelId}
+        WHERE
+            id=${id}`;
+  try {
+    let result = await query(sql);
+    res.json({
+      flag: 0,
+    });
+  } catch (e) {
+    res.json({
+      flag: 1,
+      msg: e.toString(),
+    });
+  }
+});
+
 module.exports = router;
