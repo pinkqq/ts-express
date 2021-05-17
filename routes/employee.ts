@@ -1,6 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import query from "../models/query";
+import excelExport from "excel-export";
 
 const router = express.Router();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
@@ -98,6 +99,43 @@ router.post("/updateEmployee", async (req, res) => {
       flag: 1,
       msg: e.toString(),
     });
+  }
+});
+
+let conf: excelExport.Config = {
+  cols: [
+    { caption: "员工ID", type: "number" },
+    { caption: "姓名", type: "string" },
+    { caption: "部门", type: "string" },
+    { caption: "入职时间", type: "string" },
+    { caption: "职级", type: "string" },
+  ],
+  rows: [],
+};
+
+router.get("/downloadEmployee", async (req, res) => {
+  try {
+    let result = await query(queryAllSQL); // 连接数据库，查询所有员工信息
+    conf.rows = result.map((i: any) => [
+      i.id,
+      i.name,
+      i.department,
+      i.hiredate,
+      i.level,
+    ]);
+    let excel = excelExport.execute(conf); // 生成 Excel
+
+    // 设置返回头
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=employee.xlsx");
+
+    // 最后写入一个二进制文件
+    res.end(excel, "binary");
+  } catch (e) {
+    res.send(e.toString());
   }
 });
 
